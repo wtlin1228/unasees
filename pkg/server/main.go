@@ -1,7 +1,9 @@
 package server
 
 import (
-	"log"
+	log "log"
+
+	"github.com/wtlin1228/go-gql-server/internal/orm"
 
 	"github.com/gin-gonic/gin"
 	"github.com/wtlin1228/go-gql-server/internal/handlers"
@@ -19,12 +21,15 @@ func init() {
 	isPgEnabled = utils.MustGetBool("GQL_SERVER_GRAPHQL_PLAYGROUND_ENABLED")
 }
 
-// Run web server
-func Run() {
+// Run spins up the server
+func Run(orm *orm.ORM) {
+	log.Println("GORM_CONNECTION_DSN: ", utils.MustGet("GORM_CONNECTION_DSN"))
+
 	endpoint := "http://" + host + ":" + port
 
 	r := gin.Default()
-
+	// Handlers
+	// Simple keep-alive/ping handler
 	r.GET("/heartbeat", handlers.Heartbeat())
 
 	// GraphQL handlers
@@ -33,11 +38,13 @@ func Run() {
 		r.GET(gqlPgPath, handlers.PlaygroundHandler(gqlPath))
 		log.Println("GraphQL Playground @ " + endpoint + gqlPgPath)
 	}
-	r.POST(gqlPath, handlers.GraphqlHandler())
+	// Pass in the ORM instance to the GraphqlHandler
+	r.POST(gqlPath, handlers.GraphqlHandler(orm))
 	log.Println("GraphQL @ " + endpoint + gqlPath)
 
+	// Run the server
 	// Inform the user where the server is listening
 	log.Println("Running @ " + endpoint)
 	// Print out and exit(1) to the OS if the server cannot run
-	log.Fatalln(r.Run(host + ":" + port))
+	log.Fatal(r.Run(host + ":" + port))
 }

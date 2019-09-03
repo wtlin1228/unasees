@@ -23,15 +23,15 @@ type mutationResolver struct{ *Resolver }
 func (r *mutationResolver) CreateUser(ctx context.Context, input models.UserInput) (*models.User, error) {
 	panic("not implemented")
 }
-func (r *mutationResolver) UpdateUser(ctx context.Context, input models.UserInput) (*models.User, error) {
+func (r *mutationResolver) UpdateUser(ctx context.Context, id string, input models.UserInput) (*models.User, error) {
 	panic("not implemented")
 }
-func (r *mutationResolver) DeleteUser(ctx context.Context, userID string) (bool, error) {
+func (r *mutationResolver) DeleteUser(ctx context.Context, id string) (bool, error) {
 	panic("not implemented")
 }
 
 type queryResolver struct{ *Resolver }
 
-func (r *queryResolver) Users(ctx context.Context, userID *string) ([]*models.User, error) {
+func (r *queryResolver) Users(ctx context.Context, id *string) (*models.Users, error) {
 	panic("not implemented")
 }

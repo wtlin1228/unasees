@@ -12,6 +12,16 @@ type User {
   location: String
   createdAt: Time!
   updatedAt: Time
+  posts: [Post!]!
+}
+
+type Post {
+  id: ID!
+  title: String!
+  content: String
+  createdAt: Time!
+  updatedAt: Time
+  user: User
 }
 
 # Input Types
@@ -27,10 +37,21 @@ input UserInput {
   location: String
 }
 
+input PostInput {
+  title: String
+  content: String
+  userId: String
+}
+
 # List Types
 type Users {
   count: Int # You want to return count for a grid for example
   list: [User!]! # that is why we need to specify the users object this way
+}
+
+type Posts {
+  count: Int
+  list: [Post!]!
 }
 
 # Define mutations here
@@ -38,9 +59,13 @@ type Mutation {
   createUser(input: UserInput!): User!
   updateUser(id: ID!, input: UserInput!): User!
   deleteUser(id: ID!): Boolean!
+  createPost(input: PostInput!): Post!
+  updatePost(id: ID!, input: PostInput!): Post!
+  deletePost(id: ID!): Boolean!
 }
 
 # Define queries here
 type Query {
   users(id: ID): Users!
+  posts(id: ID): Posts!
 }

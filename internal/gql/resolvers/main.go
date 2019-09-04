@@ -5,8 +5,6 @@ import (
 	"github.com/wtlin1228/go-gql-server/internal/orm"
 )
 
-// THIS CODE IS A STARTING POINT ONLY. IT WILL NOT BE UPDATED WITH SCHEMA CHANGES.
-
 type Resolver struct {
 	ORM *orm.ORM
 }

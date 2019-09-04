@@ -29,9 +29,21 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, id string, input mode
 func (r *mutationResolver) DeleteUser(ctx context.Context, id string) (bool, error) {
 	panic("not implemented")
 }
+func (r *mutationResolver) CreatePost(ctx context.Context, input models.PostInput) (*models.Post, error) {
+	panic("not implemented")
+}
+func (r *mutationResolver) UpdatePost(ctx context.Context, id string, input models.PostInput) (*models.Post, error) {
+	panic("not implemented")
+}
+func (r *mutationResolver) DeletePost(ctx context.Context, id string) (bool, error) {
+	panic("not implemented")
+}
 
 type queryResolver struct{ *Resolver }
 
 func (r *queryResolver) Users(ctx context.Context, id *string) (*models.Users, error) {
+	panic("not implemented")
+}
+func (r *queryResolver) Posts(ctx context.Context, id *string) (*models.Posts, error) {
 	panic("not implemented")
 }

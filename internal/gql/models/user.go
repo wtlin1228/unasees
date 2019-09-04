@@ -16,6 +16,7 @@ type User struct {
 	Location    *string    `json:"location"`
 	CreatedAt   time.Time  `json:"createdAt"`
 	UpdatedAt   *time.Time `json:"updatedAt"`
+	Posts       []*Post    `json:"posts"`
 }
 
 type UserInput struct {

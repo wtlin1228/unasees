@@ -2,40 +2,46 @@ package resolvers
 
 import (
 	"context"
-	"log"
+	"errors"
 
 	"github.com/gofrs/uuid"
-	models "github.com/wtlin1228/go-gql-server/internal/gql/models"
-	tf "github.com/wtlin1228/go-gql-server/internal/gql/resolvers/transformations"
-	dbm "github.com/wtlin1228/go-gql-server/internal/orm/models"
+	gqlmodels "github.com/wtlin1228/go-gql-server/internal/gql/models"
+	"github.com/wtlin1228/go-gql-server/internal/orm/models"
 )
 
-// THIS CODE IS A STARTING POINT ONLY. IT WILL NOT BE UPDATED WITH SCHEMA CHANGES.
-
-// CreateUser creates a record
-func (r *mutationResolver) CreateUser(ctx context.Context, input models.UserInput) (*models.User, error) {
+// Mutations
+func (r *mutationResolver) CreateUser(ctx context.Context, input gqlmodels.UserInput) (*models.User, error) {
 	return userCreateUpdate(r, input, false)
 }
-
-// UpdateUser updates a record
-func (r *mutationResolver) UpdateUser(ctx context.Context, id string, input models.UserInput) (*models.User, error) {
+func (r *mutationResolver) UpdateUser(ctx context.Context, id string, input gqlmodels.UserInput) (*models.User, error) {
 	return userCreateUpdate(r, input, true, id)
 }
-
-// DeleteUser deletes a record
 func (r *mutationResolver) DeleteUser(ctx context.Context, id string) (bool, error) {
 	return userDelete(r, id)
 }
 
-// Users lists records
-func (r *queryResolver) Users(ctx context.Context, id *string) (*models.Users, error) {
-	return userList(r, id)
+// Queries
+func (r *queryResolver) Users(ctx context.Context) ([]*models.User, error) {
+	var users []*models.User
+	r.ORM.DB.Preload("Posts").Find(&users)
+	return users, nil
 }
 
-// ## Helper functions
+func (r *queryResolver) User(ctx context.Context, id string) (*models.User, error) {
+	user := &models.User{}
+	r.ORM.DB.Preload("Posts").First(&user)
+	return user, nil
+}
 
-func userCreateUpdate(r *mutationResolver, input models.UserInput, update bool, ids ...string) (*models.User, error) {
-	dbo, err := tf.GQLInputUserToDBUser(&input, update, ids...)
+type userResolver struct{ *Resolver }
+
+func (r *userResolver) ID(ctx context.Context, obj *models.User) (string, error) {
+	return obj.ID.String(), nil
+}
+
+// Mutation Helper functions
+func userCreateUpdate(r *mutationResolver, input gqlmodels.UserInput, update bool, ids ...string) (*models.User, error) {
+	dbo, err := GQLInputUserToDBUser(&input, update, ids...)
 	if err != nil {
 		return nil, err
 	}
@@ -46,13 +52,12 @@ func userCreateUpdate(r *mutationResolver, input models.UserInput, update bool, 
 	} else {
 		db = db.Model(&dbo).Update(dbo).First(dbo) // Or update it
 	}
-	gql, err := tf.DBUserToGQLUser(dbo)
-	if err != nil {
+	if db.Error != nil {
 		db.RollbackUnlessCommitted()
-		return nil, err
+		return nil, db.Error
 	}
 	db = db.Commit()
-	return gql, db.Error
+	return dbo, nil
 }
 
 func userDelete(r *mutationResolver, id string) (bool, error) {
@@ -65,13 +70,13 @@ func userDelete(r *mutationResolver, id string) (bool, error) {
 	// Create scoped clean db interface
 	db := r.ORM.DB.New().Begin()
 	// Find the user
-	dbUser := &dbm.User{}
+	dbUser := &models.User{}
 	err = db.Where(whereID, convertedID).First(dbUser).Error
 	if err != nil {
 		return false, err
 	}
 	// Find the user's posts
-	dbPosts := []*dbm.Post{}
+	dbPosts := []*models.Post{}
 	db.Model(&dbUser).Related(&dbPosts, "Posts")
 	// Delete posts
 	for _, dbPost := range dbPosts {
@@ -89,32 +94,29 @@ func userDelete(r *mutationResolver, id string) (bool, error) {
 	return true, nil
 }
 
-func userList(r *queryResolver, id *string) (*models.Users, error) {
-	entity := "users"
-	whereID := "id = ?"
-	record := &models.Users{}
-	dbRecords := []*dbm.User{}
-	db := r.ORM.DB.New()
-	if id != nil {
-		db = db.Where(whereID, *id)
+// GQLInputUserToDBUser transforms [user] gql input to db model
+func GQLInputUserToDBUser(i *gqlmodels.UserInput, update bool, ids ...string) (o *models.User, err error) {
+	o = &models.User{
+		UserID:      i.UserID,
+		Name:        i.Name,
+		FirstName:   i.FirstName,
+		LastName:    i.LastName,
+		NickName:    i.NickName,
+		Description: i.Description,
+		Location:    i.Location,
 	}
-	db = db.Find(&dbRecords).Count(&record.Count)
-	for _, dbRec := range dbRecords {
-		if rec, err := tf.DBUserToGQLUser(dbRec); err != nil {
-			log.Println(entity, err)
-		} else {
-			// get user's posts
-			dbPosts := []*dbm.Post{}
-			db.Model(&dbRec).Related(&dbPosts, "Posts")
-			for _, dbPost := range dbPosts {
-				if gqlPost, err := tf.DBPostToGQLPost(dbPost); err != nil {
-					log.Println("posts", err)
-				} else {
-					rec.Posts = append(rec.Posts, gqlPost)
-				}
-			}
-			record.List = append(record.List, rec)
+	if i.Email == nil && !update {
+		return nil, errors.New("Field [email] is required")
+	}
+	if i.Email != nil {
+		o.Email = *i.Email
+	}
+	if len(ids) > 0 {
+		updID, err := uuid.FromString(ids[0])
+		if err != nil {
+			return nil, err
 		}
+		o.ID = updID
 	}
-	return record, db.Error
+	return o, err
 }

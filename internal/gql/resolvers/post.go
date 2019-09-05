@@ -2,34 +2,48 @@ package resolvers
 
 import (
 	"context"
-	"log"
 
 	"github.com/gofrs/uuid"
-	models "github.com/wtlin1228/go-gql-server/internal/gql/models"
-	tf "github.com/wtlin1228/go-gql-server/internal/gql/resolvers/transformations"
-	dbm "github.com/wtlin1228/go-gql-server/internal/orm/models"
+	gqlmodels "github.com/wtlin1228/go-gql-server/internal/gql/models"
+	"github.com/wtlin1228/go-gql-server/internal/orm/models"
 )
 
-// THIS CODE IS A STARTING POINT ONLY. IT WILL NOT BE UPDATED WITH SCHEMA CHANGES.
-
-func (r *mutationResolver) CreatePost(ctx context.Context, input models.PostInput) (*models.Post, error) {
+// Mutations
+func (r *mutationResolver) CreatePost(ctx context.Context, input gqlmodels.PostInput) (*models.Post, error) {
 	return postCreateUpdate(r, input, false)
 }
-func (r *mutationResolver) UpdatePost(ctx context.Context, id string, input models.PostInput) (*models.Post, error) {
+func (r *mutationResolver) UpdatePost(ctx context.Context, id string, input gqlmodels.PostInput) (*models.Post, error) {
 	return postCreateUpdate(r, input, true, id)
 }
 func (r *mutationResolver) DeletePost(ctx context.Context, id string) (bool, error) {
 	return postDelete(r, id)
 }
 
-func (r *queryResolver) Posts(ctx context.Context, id *string) (*models.Posts, error) {
-	return postList(r, id)
+// Queries
+func (r *queryResolver) Posts(ctx context.Context) ([]*models.Post, error) {
+	var posts []*models.Post
+	r.ORM.DB.Find(&posts)
+	return posts, nil
 }
 
-// ## Helper functions
+func (r *queryResolver) Post(ctx context.Context, id string) (*models.Post, error) {
+	post := &models.Post{}
+	r.ORM.DB.First(&post)
+	return post, nil
+}
 
-func postCreateUpdate(r *mutationResolver, input models.PostInput, update bool, ids ...string) (*models.Post, error) {
-	dbo, err := tf.GQLInputPostToDBPost(&input, update, ids...)
+type postResolver struct{ *Resolver }
+
+func (r *postResolver) ID(ctx context.Context, obj *models.Post) (string, error) {
+	return obj.ID.String(), nil
+}
+func (r *postResolver) User(ctx context.Context, obj *models.Post) (*models.User, error) {
+	return r.Query().User(ctx, obj.UserID.String())
+}
+
+// Mutation Helper functions
+func postCreateUpdate(r *mutationResolver, input gqlmodels.PostInput, update bool, ids ...string) (*models.Post, error) {
+	dbo, err := GQLInputPostToDBPost(&input, update, ids...)
 	if err != nil {
 		return nil, err
 	}
@@ -40,18 +54,17 @@ func postCreateUpdate(r *mutationResolver, input models.PostInput, update bool, 
 	} else {
 		db = db.Model(&dbo).Update(dbo).First(dbo) // Or update it
 	}
-	gql, err := tf.DBPostToGQLPost(dbo)
-	if err != nil {
+	if db.Error != nil {
 		db.RollbackUnlessCommitted()
-		return nil, err
+		return nil, db.Error
 	}
 	db = db.Commit()
-	return gql, db.Error
+	return dbo, nil
 }
 
 func postDelete(r *mutationResolver, id string) (bool, error) {
 	whereID := "id = ?"
-	// Convert id to uuid.UUID from string
+	// Convert id from type string to type uuid.UUID
 	convertedID, err := uuid.FromString(id)
 	if err != nil {
 		return false, err
@@ -59,7 +72,7 @@ func postDelete(r *mutationResolver, id string) (bool, error) {
 	// Create scoped clean db interface
 	db := r.ORM.DB.New().Begin()
 	// Find the post
-	dbPost := &dbm.Post{}
+	dbPost := &models.Post{}
 	err = db.Where(whereID, convertedID).First(dbPost).Error
 	if err != nil {
 		return false, err
@@ -73,31 +86,19 @@ func postDelete(r *mutationResolver, id string) (bool, error) {
 	return true, nil
 }
 
-func postList(r *queryResolver, id *string) (*models.Posts, error) {
-	entity := "posts"
-	whereID := "id = ?"
-	record := &models.Posts{}
-	dbRecords := []*dbm.Post{}
-	db := r.ORM.DB.New()
-	if id != nil {
-		db = db.Where(whereID, *id)
+// GQLInputPostToDBPost transforms [post] gql input to db model
+func GQLInputPostToDBPost(i *gqlmodels.PostInput, update bool, ids ...string) (o *models.Post, err error) {
+	o = &models.Post{
+		Title:   *i.Title,
+		Content: i.Content,
 	}
-	db = db.Find(&dbRecords).Count(&record.Count)
-	for _, dbRec := range dbRecords {
-		if rec, err := tf.DBPostToGQLPost(dbRec); err != nil {
-			log.Println(entity, err)
-		} else {
-			// get the post's owner
-			dbUser := &dbm.User{}
-			db.Where(whereID, dbRec.UserID).First(dbUser)
-			if gqlUser, err := tf.DBUserToGQLUser(dbUser); err != nil {
-				log.Println(entity, err)
-			} else {
-				rec.User = gqlUser
-			}
-
-			record.List = append(record.List, rec)
+	// convert the id from type String to type uuid.UUID
+	if len(ids) > 0 {
+		updID, err := uuid.FromString(ids[0])
+		if err != nil {
+			return nil, err
 		}
+		o.ID = updID
 	}
-	return record, db.Error
+	return o, err
 }

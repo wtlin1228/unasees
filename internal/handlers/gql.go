@@ -3,7 +3,7 @@ package handlers
 import (
 	"github.com/99designs/gqlgen/handler"
 	"github.com/gin-gonic/gin"
-	"github.com/wtlin1228/go-gql-server/internal/gql"
+	gql "github.com/wtlin1228/go-gql-server/internal/gql/generated"
 	"github.com/wtlin1228/go-gql-server/internal/gql/resolvers"
 	"github.com/wtlin1228/go-gql-server/internal/orm"
 )

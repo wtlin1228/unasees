@@ -43,17 +43,6 @@ input PostInput {
   userId: String
 }
 
-# List Types
-type Users {
-  count: Int # You want to return count for a grid for example
-  list: [User!]! # that is why we need to specify the users object this way
-}
-
-type Posts {
-  count: Int
-  list: [Post!]!
-}
-
 # Define mutations here
 type Mutation {
   createUser(input: UserInput!): User!
@@ -66,6 +55,8 @@ type Mutation {
 
 # Define queries here
 type Query {
-  users(id: ID): Users!
-  posts(id: ID): Posts!
+  users: [User!]!
+  posts: [Post!]!
+  user(id: ID!): User
+  post(id: ID!): Post
 }

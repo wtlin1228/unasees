@@ -19,7 +19,13 @@ resolver:
   package: resolvers
 autobind: []
 models:
-  User:
-    model: github.com/wtlin1228/go-gql-server/internal/orm/models.User
-  Post:
-    model: github.com/wtlin1228/go-gql-server/internal/orm/models.Post
+  Category:
+    model: github.com/wtlin1228/go-gql-server/internal/orm/models.Category
+  Dessert:
+    model: github.com/wtlin1228/go-gql-server/internal/orm/models.Dessert
+  IngredientGroup:
+    model: github.com/wtlin1228/go-gql-server/internal/orm/models.IngredientGroup
+  Ingredient:
+    model: github.com/wtlin1228/go-gql-server/internal/orm/models.Ingredient
+  Step:
+    model: github.com/wtlin1228/go-gql-server/internal/orm/models.Step

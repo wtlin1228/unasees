@@ -13,8 +13,11 @@ import (
 
 func updateMigration(db *gorm.DB) error {
 	return db.AutoMigrate(
-		&models.User{},
-		&models.Post{},
+		&models.Category{},
+		&models.Dessert{},
+		&models.IngredientGroup{},
+		&models.Ingredient{},
+		&models.Step{},
 	).Error
 }
 
@@ -42,7 +45,7 @@ func ServiceAutoMigration(db *gorm.DB) error {
 		return err
 	}
 	m = gormigrate.New(db, gormigrate.DefaultOptions, []*gormigrate.Migration{
-		jobs.SeedUsers,
+		jobs.SeedCategories,
 	})
 	return m.Migrate()
 }

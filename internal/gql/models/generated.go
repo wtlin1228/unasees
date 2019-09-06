@@ -2,20 +2,42 @@
 
 package gqlmodels
 
-type PostInput struct {
-	Title   *string `json:"title"`
-	Content *string `json:"content"`
-	UserID  *string `json:"userId"`
+type CategoryInput struct {
+	Name *string `json:"name"`
 }
 
-type UserInput struct {
-	Email       *string `json:"email"`
-	UserID      *string `json:"userId"`
-	DisplayName *string `json:"displayName"`
-	Name        *string `json:"name"`
-	FirstName   *string `json:"firstName"`
-	LastName    *string `json:"lastName"`
-	NickName    *string `json:"nickName"`
-	Description *string `json:"description"`
-	Location    *string `json:"location"`
+type DessertInput struct {
+	Name           *string `json:"name"`
+	Description    *string `json:"description"`
+	Unit           *string `json:"unit"`
+	Amount         *int    `json:"amount"`
+	AmountMinimum  *int    `json:"amountMinimum"`
+	AmountInterval *int    `json:"amountInterval"`
+	DegreeTop      *string `json:"degreeTop"`
+	DegreeDown     *string `json:"degreeDown"`
+	BakingTime     *int    `json:"bakingTime"`
+	BigImageURL    *string `json:"bigImageUrl"`
+	SmallImageURL  *string `json:"smallImageUrl"`
+	ThumbnailURL   *string `json:"thumbnailUrl"`
+	CategoryID     *string `json:"categoryId"`
+}
+
+type IngredientGroupInput struct {
+	Name      *string `json:"name"`
+	DessertID *string `json:"dessertId"`
+}
+
+type IngredientInput struct {
+	Name              *string `json:"name"`
+	Unit              *string `json:"unit"`
+	Amount            *int    `json:"amount"`
+	IngredientGroupID *string `json:"ingredientGroupId"`
+}
+
+type StepInput struct {
+	Name      *string `json:"name"`
+	Content   *string `json:"content"`
+	Notice    *string `json:"notice"`
+	Order     *int    `json:"order"`
+	DessertID *string `json:"dessertId"`
 }

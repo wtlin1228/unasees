@@ -1,62 +1,143 @@
 scalar Time
 # Types
-type User {
+type Category {
   id: ID!
-  email: String!
-  userId: String
-  name: String
-  firstName: String
-  lastName: String
-  nickName: String
-  description: String
-  location: String
+  name: String!
   createdAt: Time!
   updatedAt: Time
-  posts: [Post!]!
+  dessertList: [Dessert!]
 }
 
-type Post {
+type Dessert {
   id: ID!
-  title: String!
-  content: String
+  name: String!
+  description: String
+  unit: String!
+  amount: Int!
+  amountMinimum: Int!
+  amountInterval: Int!
+  degreeTop: String!
+  degreeDown: String!
+  bakingTime: Int!
+  bigImageUrl: String!
+  smallImageUrl: String!
+  thumbnailUrl: String!
   createdAt: Time!
   updatedAt: Time
-  user: User
+  stepList: [Step!]
+  ingredientGroupList: [IngredientGroup!]
+  category: Category!
+}
+
+type IngredientGroup {
+  id: ID!
+  name: String!
+  createdAt: Time!
+  updatedAt: Time
+  ingredientList: [Ingredient!]
+  dessert: Dessert!
+}
+
+type Ingredient {
+  id: ID!
+  name: String!
+  unit: String!
+  amount: Int!
+  createdAt: Time!
+  updatedAt: Time
+  ingredientGroup: IngredientGroup!
+}
+
+type Step {
+  id: ID!
+  name: String!
+  content: String!
+  notice: String!
+  order: Int!
+  createdAt: Time!
+  updatedAt: Time
+  dessert: Dessert!
 }
 
 # Input Types
-input UserInput {
-  email: String
-  userId: String
-  displayName: String
+input CategoryInput {
   name: String
-  firstName: String
-  lastName: String
-  nickName: String
-  description: String
-  location: String
 }
 
-input PostInput {
-  title: String
+input DessertInput {
+  name: String
+  description: String
+  unit: String
+  amount: Int
+  amountMinimum: Int
+  amountInterval: Int
+  degreeTop: String
+  degreeDown: String
+  bakingTime: Int
+  bigImageUrl: String
+  smallImageUrl: String
+  thumbnailUrl: String
+  categoryId: String
+}
+
+input IngredientGroupInput {
+  name: String
+  dessertId: String
+}
+
+input IngredientInput {
+  name: String
+  unit: String
+  amount: Int
+  ingredientGroupId: String
+}
+
+input StepInput {
+  name: String
   content: String
-  userId: String
+  notice: String
+  order: Int
+  dessertId: String
 }
 
 # Define mutations here
 type Mutation {
-  createUser(input: UserInput!): User!
-  updateUser(id: ID!, input: UserInput!): User!
-  deleteUser(id: ID!): Boolean!
-  createPost(input: PostInput!): Post!
-  updatePost(id: ID!, input: PostInput!): Post!
-  deletePost(id: ID!): Boolean!
+  createCategory(input: CategoryInput): Category!
+  updateCategory(id: ID!, input: CategoryInput): Category!
+  deleteCategory(id: ID!): Boolean!
+
+  createDessert(input: DessertInput): Dessert!
+  updateDessert(id: ID!, input: DessertInput): Dessert!
+  deleteDessert(id: ID!): Boolean!
+
+  createIngredientGroup(input: IngredientGroupInput): IngredientGroup!
+  updateIngredientGroup(id: ID!, input: IngredientGroupInput): IngredientGroup!
+  deleteIngredientGroup(id: ID!): Boolean!
+
+  createIngredient(input: IngredientInput): Ingredient!
+  updateIngredient(id: ID!, input: IngredientInput): Ingredient!
+  deleteIngredient(id: ID!): Boolean!
+
+  createStep(input: StepInput): Step!
+  updateStep(id: ID!, input: StepInput): Step!
+  deleteStep(id: ID!): Boolean!
 }
 
 # Define queries here
 type Query {
-  users: [User!]!
-  posts: [Post!]!
-  user(id: ID!): User
-  post(id: ID!): Post
+  categories: [Category!]!
+  category(id: ID!): Category
+
+  desserts: [Dessert!]!
+  dessert(id: ID!): Dessert
+
+  ingredientGroups: [IngredientGroup!]!
+  ingredientGroup(id: ID!): IngredientGroup
+
+  ingredients: [Ingredient!]!
+  ingredient(id: ID!): Ingredient
+
+  steps: [Step!]!
+  step(id: ID!): Step
+
 }

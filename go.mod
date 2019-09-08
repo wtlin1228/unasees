@@ -7,6 +7,7 @@ require (
 	github.com/99designs/gqlgen v0.9.3
 	github.com/cmelgarejo/go-gql-server v0.0.0-20190728060617-a516f3cc65b4
 	github.com/denisenkom/go-mssqldb v0.0.0-20190830225923-3302f0226fbd // indirect
+	github.com/gin-contrib/cors v1.3.0
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/gin-gonic/gin v1.4.0
 	github.com/gofrs/uuid v3.2.0+incompatible

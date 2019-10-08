@@ -33,6 +33,9 @@ func (r *Resolver) Query() generated.QueryResolver {
 func (r *Resolver) Step() generated.StepResolver {
 	return &stepResolver{r}
 }
+func (r *Resolver) User() generated.UserResolver {
+	return &userResolver{r}
+}
 
 type categoryResolver struct{ *Resolver }
 
@@ -126,6 +129,9 @@ func (r *mutationResolver) UpdateStep(ctx context.Context, id string, input *gql
 func (r *mutationResolver) DeleteStep(ctx context.Context, id string) (bool, error) {
 	panic("not implemented")
 }
+func (r *mutationResolver) Login(ctx context.Context, input *gqlmodels.UserInput) (string, error) {
+	panic("not implemented")
+}
 
 type queryResolver struct{ *Resolver }
 
@@ -166,5 +172,11 @@ func (r *stepResolver) ID(ctx context.Context, obj *models.Step) (string, error)
 	panic("not implemented")
 }
 func (r *stepResolver) Dessert(ctx context.Context, obj *models.Step) (*models.Dessert, error) {
+	panic("not implemented")
+}
+
+type userResolver struct{ *Resolver }
+
+func (r *userResolver) ID(ctx context.Context, obj *models.User) (string, error) {
 	panic("not implemented")
 }

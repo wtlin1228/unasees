@@ -1,5 +1,11 @@
 scalar Time
 # Types
+type User {
+  id: ID!
+  username: String!
+  password: String!
+}
+
 type Category {
   id: ID!
   name: String!
@@ -100,27 +106,34 @@ input StepInput {
   dessertId: String
 }
 
+input UserInput {
+  username: String
+  password: String
+}
+
 # Define mutations here
 type Mutation {
-  createCategory(input: CategoryInput): Category!
-  updateCategory(id: ID!, input: CategoryInput): Category!
-  deleteCategory(id: ID!): Boolean!
+  createCategory(input: CategoryInput): Category! @isAuthenticated
+  updateCategory(id: ID!, input: CategoryInput): Category! @isAuthenticated
+  deleteCategory(id: ID!): Boolean! @isAuthenticated
 
-  createDessert(input: DessertInput): Dessert!
-  updateDessert(id: ID!, input: DessertInput): Dessert!
-  deleteDessert(id: ID!): Boolean!
+  createDessert(input: DessertInput): Dessert! @isAuthenticated
+  updateDessert(id: ID!, input: DessertInput): Dessert! @isAuthenticated
+  deleteDessert(id: ID!): Boolean! @isAuthenticated
 
-  createIngredientGroup(input: IngredientGroupInput): IngredientGroup!
-  updateIngredientGroup(id: ID!, input: IngredientGroupInput): IngredientGroup!
-  deleteIngredientGroup(id: ID!): Boolean!
+  createIngredientGroup(input: IngredientGroupInput): IngredientGroup! @isAuthenticated
+  updateIngredientGroup(id: ID!, input: IngredientGroupInput): IngredientGroup! @isAuthenticated
+  deleteIngredientGroup(id: ID!): Boolean! @isAuthenticated
 
-  createIngredient(input: IngredientInput): Ingredient!
-  updateIngredient(id: ID!, input: IngredientInput): Ingredient!
-  deleteIngredient(id: ID!): Boolean!
+  createIngredient(input: IngredientInput): Ingredient! @isAuthenticated
+  updateIngredient(id: ID!, input: IngredientInput): Ingredient! @isAuthenticated
+  deleteIngredient(id: ID!): Boolean! @isAuthenticated
 
-  createStep(input: StepInput): Step!
-  updateStep(id: ID!, input: StepInput): Step!
-  deleteStep(id: ID!): Boolean!
+  createStep(input: StepInput): Step! @isAuthenticated
+  updateStep(id: ID!, input: StepInput): Step! @isAuthenticated
+  deleteStep(id: ID!): Boolean! @isAuthenticated
+
+  login(input: UserInput): String!
 }
 
 # Define queries here
@@ -139,5 +152,6 @@ type Query {
 
   steps: [Step!]!
   step(id: ID!): Step
-
 }
+
+directive @isAuthenticated on FIELD_DEFINITION

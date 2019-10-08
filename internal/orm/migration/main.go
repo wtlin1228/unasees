@@ -18,6 +18,7 @@ func updateMigration(db *gorm.DB) error {
 		&models.IngredientGroup{},
 		&models.Ingredient{},
 		&models.Step{},
+		&models.User{},
 	).Error
 }
 

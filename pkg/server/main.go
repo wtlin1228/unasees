@@ -4,9 +4,9 @@ import (
 	log "log"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/wtlin1228/go-gql-server/internal/orm"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/wtlin1228/go-gql-server/internal/handlers"
 	"github.com/wtlin1228/go-gql-server/pkg/utils"
@@ -32,7 +32,8 @@ func Run(orm *orm.ORM) {
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
-		AllowOriginFunc:  func(origin string) bool { return origin == "http://localhost:3000" },
+		// AllowOriginFunc:  func(origin string) bool { return origin == "http://localhost:3000" },
+		AllowOriginFunc:  func(origin string) bool { return true },
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "PATCH"},
 		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type"},
 		AllowCredentials: true,

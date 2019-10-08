@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/99designs/gqlgen/handler"
 	"github.com/gin-gonic/gin"
+	"github.com/wtlin1228/go-gql-server/internal/auth"
 	gql "github.com/wtlin1228/go-gql-server/internal/gql/generated"
 	"github.com/wtlin1228/go-gql-server/internal/gql/resolvers"
 	"github.com/wtlin1228/go-gql-server/internal/orm"
@@ -10,14 +11,10 @@ import (
 
 // GraphqlHandler defines the GQLGen GraphQL server handler
 func GraphqlHandler(orm *orm.ORM) gin.HandlerFunc {
-	// NewExecutableSchema and Config are in the generated.go file
-	c := gql.Config{
-		Resolvers: &resolvers.Resolver{
-			ORM: orm, // pass in the ORM instance in the resolvers to be used
-		},
-	}
 
-	h := handler.GraphQL(gql.NewExecutableSchema(c))
+	h := auth.Middleware(
+		handler.GraphQL(gql.NewExecutableSchema(resolvers.NewRootResolvers(orm))),
+	)
 
 	return func(c *gin.Context) {
 		h.ServeHTTP(c.Writer, c.Request)

@@ -29,3 +29,5 @@ models:
     model: github.com/wtlin1228/go-gql-server/internal/orm/models.Ingredient
   Step:
     model: github.com/wtlin1228/go-gql-server/internal/orm/models.Step
+  User:
+    model: github.com/wtlin1228/go-gql-server/internal/orm/models.User

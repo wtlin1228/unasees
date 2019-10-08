@@ -41,3 +41,8 @@ type StepInput struct {
 	Order     *int    `json:"order"`
 	DessertID *string `json:"dessertId"`
 }
+
+type UserInput struct {
+	Username *string `json:"username"`
+	Password *string `json:"password"`
+}

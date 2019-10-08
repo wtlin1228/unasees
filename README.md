@@ -101,87 +101,87 @@ func (base *BaseModel) BeforeCreate(scope *gorm.Scope) error {
 
 1. Update the schema and ORM model
 
-在 schema  還有 ORM model 裡面都加上 User，欄位我只填最基本的 username/password，然後記得如果在 production 實作的話，密碼存入 DB 之前要加密！
+	在 schema  還有 ORM model 裡面都加上 User，欄位我只填最基本的 username/password，然後記得如果在 production 實作的話，密碼存入 DB 之前要加密！
 
-`directive @isAuthenticated on FIELD_DEFINITION`
+	`directive @isAuthenticated on FIELD_DEFINITION`
 
-`createCategory(input: CategoryInput): Category! @isAuthenticated`
+	`createCategory(input: CategoryInput): Category! @isAuthenticated`
 
-如此一來，如果想要 createCategory，就需要先通過 isAuthenticated 的驗證！
+	如此一來，如果想要 createCategory，就需要先通過 isAuthenticated 的驗證！
 
 2. Run gqlgen to generate new codes based on the new schema
 
 3. Write a auth middleware to handle incoming request
 
-```Go
-package auth
+	```Go
+	package auth
 
-import (
-	"context"
-	"net/http"
+	import (
+		"context"
+		"net/http"
 
-	"github.com/wtlin1228/go-gql-server/internal/gql/resolvers"
-)
+		"github.com/wtlin1228/go-gql-server/internal/gql/resolvers"
+	)
 
-// Middleware is used to handle auth logic
-func Middleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		auth := r.Header.Get("Authorization")
-		if auth != "" {
-			// Write your fancy token introspection logic here and if valid user then pass appropriate key in header
-			// IMPORTANT: DO NOT HANDLE UNAUTHORIZED USER HERE
-			ctx = context.WithValue(ctx, resolvers.UserIDCtxKey, auth)
-		}
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
-```
-
-並且在 resolvers/main.go 裡面加上
-
-```Go
-type contextKey string
-
-var (
-	UserIDCtxKey = contextKey("userID")
-)
-
-func NewRootResolvers(orm *orm.ORM) generated.Config {
-	c := generated.Config{
-		Resolvers: &Resolver{
-			ORM: orm, // pass in the ORM instance in the resolvers to be used
-		},
+	// Middleware is used to handle auth logic
+	func Middleware(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+			auth := r.Header.Get("Authorization")
+			if auth != "" {
+				// Write your fancy token introspection logic here and if valid user then pass appropriate key in header
+				// IMPORTANT: DO NOT HANDLE UNAUTHORIZED USER HERE
+				ctx = context.WithValue(ctx, resolvers.UserIDCtxKey, auth)
+			}
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
 	}
+	```
 
-	// Schema Directive
-	c.Directives.IsAuthenticated = func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error) {
-		ctxUserID := ctx.Value(UserIDCtxKey)
-		if ctxUserID == nil {
-			return nil, errors.UnAuthorizedError
+	並且在 resolvers/main.go 裡面加上
+
+	```Go
+	type contextKey string
+
+	var (
+		UserIDCtxKey = contextKey("userID")
+	)
+
+	func NewRootResolvers(orm *orm.ORM) generated.Config {
+		c := generated.Config{
+			Resolvers: &Resolver{
+				ORM: orm, // pass in the ORM instance in the resolvers to be used
+			},
 		}
-		return next(ctx)
-	}
 
-	return c
-}
-```
+		// Schema Directive
+		c.Directives.IsAuthenticated = func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error) {
+			ctxUserID := ctx.Value(UserIDCtxKey)
+			if ctxUserID == nil {
+				return nil, errors.UnAuthorizedError
+			}
+			return next(ctx)
+		}
+
+		return c
+	}
+	```
 
 4. Wrap the http handle function with auth middleware
 
-將 GraphqlHandler 改成這樣
+	將 GraphqlHandler 改成這樣
 
-```Go
-func GraphqlHandler(orm *orm.ORM) gin.HandlerFunc {
+	```Go
+	func GraphqlHandler(orm *orm.ORM) gin.HandlerFunc {
 
-	h := auth.Middleware(
-		handler.GraphQL(gql.NewExecutableSchema(resolvers.NewRootResolvers(orm))),
-	)
+		h := auth.Middleware(
+			handler.GraphQL(gql.NewExecutableSchema(resolvers.NewRootResolvers(orm))),
+		)
 
-	return func(c *gin.Context) {
-		h.ServeHTTP(c.Writer, c.Request)
+		return func(c *gin.Context) {
+			h.ServeHTTP(c.Writer, c.Request)
+		}
 	}
-}
-```
+	```
 
-記得加上自己的 login logic，產生你用來做驗證的 token，然後就可以拿這個 token 給 auth middleware 驗證，範例可以看 `/internal/gql/resolvers/users.go`
+	記得加上自己的 login logic，產生你用來做驗證的 token，然後就可以拿這個 token 給 auth middleware 驗證，範例可以看 `/internal/gql/resolvers/users.go`
